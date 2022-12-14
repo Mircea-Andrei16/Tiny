@@ -1,0 +1,182 @@
+/*
+   Simple +/-/* expression language; 
+   parser evaluates constant expressions on the fly
+*/
+
+package cup.example;
+
+import java_cup.runtime.*;
+import cup.example.Lexer;
+import java.io.IOException;
+import java.io.File;
+import java.io.FileInputStream;
+
+parser code {:
+  protected Lexer lexer;
+  protected MultiTree syntaxTree = new MultiTree();
+
+	public MultiTree getSyntaxTree()
+	{
+		return syntaxTree;
+ 	}
+	protected MultiTreeNode createFunctionDeclarationNode(MultiTreeNode typeSpecifier, String name, MultiTreeNode paramsList, MultiTreeNode block){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createListNode(String listName, MultiTreeNode firstChild){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createVarDeclaration(MultiTreeNode typeSpecifier, String identifierName, Integer value ){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createTypeSpecifier(String typeName){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createTypeSpecifier(MultiTreeNode type,MultiTreeNode expression){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createBlock(MultiTreeNode declarations, MultiTreeNode instructions){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createIfStatement(MultiTreeNode condition, MultiTreeNode ifInstructions, MultiTreeNode elseInstructions){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createStatementList(String indicator, String name, MultiTreeNode stm){ throw new UnsupportedOperationException();} 	
+	protected MultiTreeNode createStatement(String name, MultiTreeNode ex, MultiTreeNode stm){ throw new UnsupportedOperationException();} 	
+	protected MultiTreeNode createReturnStatement(MultiTreeNode exp){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createBlockStatement(MultiTreeNode exp){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createInOutStatement(String ioOP, MultiTreeNode exp){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createLExpression(MultiTreeNode lexp, MultiTreeNode exp){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createExpression(MultiTreeNode lexp, MultiTreeNode operation,MultiTreeNode ex){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createUExpression(MultiTreeNode operation,MultiTreeNode ex){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createInstance(String instance){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createOperation(String operation){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createVariable(String name){ throw new UnsupportedOperationException();}
+:}
+
+/* define how to connect to the scanner! */
+init with {:
+  ComplexSymbolFactory f = new ComplexSymbolFactory();
+  symbolFactory = f;
+  File file = new File("input.txt");
+  FileInputStream fis = null;
+  try {
+    fis = new FileInputStream(file);
+  } catch (IOException e) {
+    e.printStackTrace();
+  } 
+  lexer = new Lexer(f,fis);
+:};
+scan with {: return lexer.next_token(); :};
+
+/* Terminals (tokens returned by the scanner). */
+
+/* Keywords*/
+terminal  INT,IF, ELSE, RETURN, CHAR, WRITE, READ, LENGTH, WHILE;
+
+/* Relational Operators */
+terminal EQUAL, NEQUAL, ASSIGN,GREATER,LESS;
+/* Separators */
+terminal LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, SEMICOLON, COMMA;
+/* Arithmetic */
+terminal PLUS, MINUS, TIMES, DIVIDE;
+/* Logical Operator */
+terminal NOT;
+
+terminal String NAME;
+
+terminal String    STRING;  // our scanner provides numbers as string
+terminal char      QCHAR;
+terminal Integer   NUMBER;     
+
+/* Non terminals */
+non terminal MultiTreeNode program;
+non terminal MultiTreeNode fun_declaration;
+non terminal MultiTreeNode param_list;
+non terminal MultiTreeNode formal_par;
+non terminal MultiTreeNode block;
+non terminal MultiTreeNode var_delcaration_list;
+non terminal MultiTreeNode var_declaration;
+non terminal MultiTreeNode type;
+non terminal MultiTreeNode statements;
+non terminal MultiTreeNode statement;
+non terminal MultiTreeNode lexp;
+non terminal MultiTreeNode exp;
+non terminal MultiTreeNode binop;
+non terminal MultiTreeNode unop;
+non terminal MultiTreeNode exp_list;
+non terminal MultiTreeNode var;
+
+/* Precedences */
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE;
+
+/* The grammar rules */
+program ::= program:p var_declaration:var_d										{: RESULT = p; syntaxTree.addChildNode(var_d);:}
+		|	program:p fun_declaration:fn_d										{: RESULT = p; syntaxTree.addChildNode(fn_d);:}
+		|	/* empty */															{: RESULT = syntaxTree.create("Program");:}
+		;
+		
+fun_declaration ::= type:t NAME:name LPAR param_list:for_par RPAR block:blk     {:RESULT = createFunctionDeclarationNode(t,name,for_par,blk);:}
+				;
+			
+param_list ::= param_list:pl COMMA formal_par:fp        						{:RESULT = pl;RESULT.addChild(fp);:}
+                 |   formal_par:fp                              				{:RESULT = createListNode("Parameter List", fp);:}
+                 ;	
+                 
+                 		
+formal_par ::= type:t NAME:name                                       			{:RESULT = createVarDeclaration(t,name,0);:}
+		   ;
+		   
+block ::= LBRACE var_delcaration_list:vadl statements:st RBRACE		   			{:RESULT = createBlock(vadl,st);:}
+	  ;
+	 
+	 
+var_delcaration_list ::= var_delcaration_list:vadl var_declaration:vad  		{:RESULT = vadl;RESULT.addChild(vad);:}
+					 | var_declaration:vad                         				{:RESULT = createListNode("VarDeclarations",vad);:}
+					 |                                         					{:RESULT = createListNode("VarDeclarations",null);:}
+					 ;
+					 
+var_declaration ::= type:t NAME:name SEMICOLON	                       			{:RESULT = createVarDeclaration(t,name,0);:}
+				;
+				
+type ::= INT                                                   					{:RESULT = createTypeSpecifier("INT");:}
+	 |   CHAR												   					{:RESULT = createTypeSpecifier("CHAR");:}
+	 |   type:t LBRACK exp:ex RBRACK                           					{:RESULT = createTypeSpecifier(t,ex);:}
+	 ;
+
+statements ::= statements:stms statement:stm SEMICOLON        					{:RESULT = stms;RESULT.addChild(stm);:}
+				| statement:stm SEMICOLON                        				{:RESULT = createListNode("Statemtents",stm);:}
+				;		   
+		   
+statement  ::=  IF LPAR exp:ex RPAR statement:stm ELSE statement:stm      		{:RESULT = createIfStatement(ex,stm,stm);:}
+           |    IF LPAR	exp:ex RPAR statement:stm                     			{:RESULT = createIfStatement(ex,stm,null);:}
+           |    WHILE LPAR exp:ex RPAR statement:stm                  	  		{:RESULT = createStatement("WHILE",ex,stm);:}
+           |    lexp:lex ASSIGN exp:ex                                	  		{:RESULT = createStatement("Assign",lex,ex);:}
+           |    RETURN exp:ex                                     				{:RESULT = createReturnStatement(ex);:}
+           |    NAME:name LPAR exp_list:exl RPAR                            	{:RESULT = createStatementList("StatementList",name,exl);:}
+           |    block:blk                                          				{:RESULT = createBlockStatement(blk);:}
+           |    WRITE exp:ex                                      				{:RESULT = createInOutStatement("IN",ex);:}
+           |    READ exp:ex                                       				{:RESULT = createInOutStatement("OUT",ex);:}
+           ;
+           
+lexp ::=  var:v                                                  				{:RESULT = createLExpression(v,null);:}
+     |    lexp:lex LBRACK exp:ex RBRACK                               			{:RESULT = createLExpression(lex,ex);:}
+     ;
+     
+exp  ::=  lexp:lex                                                 				{:RESULT = createExpression(lex,null,null);:}
+     |    exp:ex binop:bop exp:ex                                        		{:RESULT = createExpression(ex,bop,ex);:}
+     |    unop:uop exp:ex                                             			{:RESULT = createUExpression(uop,ex);:}
+     |    LPAR exp:ex RPAR                                        				{:RESULT = createExpression(ex, null,null);:}
+     |    NUMBER			                                           			{:RESULT = createInstance("Number");:}
+     |    NAME:name LPAR exp_list:exl RPAR                                  	{:RESULT = createStatementList("ExpressionList",name,exl);:}
+     |    QCHAR                                                					{:RESULT = createInstance("CHAR");:}
+     |    LENGTH lexp:lex                                          				{:RESULT = createUExpression(null,lex);:}
+     ;
+     
+binop ::= MINUS                                                					{:RESULT = createOperation("MINUS");:}
+      |   PLUS                                                 					{:RESULT = createOperation("PLUS");:}
+      |   TIMES                                                					{:RESULT = createOperation("TIMES");:}
+      |   DIVIDE                                               					{:RESULT = createOperation("DIVIDE");:}
+      |   EQUAL                                                					{:RESULT = createOperation("EQUAL");:}
+      |   NEQUAL                                              					{:RESULT = createOperation("NEQUAL");:}
+      |   GREATER                                              					{:RESULT = createOperation("GREATER");:}
+      |   LESS                                                 					{:RESULT = createOperation("LESS");:}
+      ;
+      
+unop ::= MINUS                                                 					{:RESULT = createOperation("MINUS");:}
+	 |   NOT                                                   					{:RESULT = createOperation("NOT");:}
+	 ;
+     
+exp_list ::= exp_list:exl COMMA exp:ex                                			{:RESULT = exl; RESULT.addChild(ex);:}
+		 | exp:ex                                                 				{:RESULT = createListNode("VarDeclarations",ex);:}
+		 |                                                     					{:RESULT = createListNode("VarDeclarations",null);:}
+		 ;
+     
+var  ::= NAME:name                                                  			{:RESULT = createVariable(name);:}
+	 ;
