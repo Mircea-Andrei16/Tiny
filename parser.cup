@@ -21,7 +21,7 @@ parser code {:
  	}
 	protected MultiTreeNode createFunctionDeclarationNode(MultiTreeNode typeSpecifier, String name, MultiTreeNode paramsList, MultiTreeNode block){ throw new UnsupportedOperationException();}
 	protected MultiTreeNode createListNode(String listName, MultiTreeNode firstChild){ throw new UnsupportedOperationException();}
-	protected MultiTreeNode createVarDeclaration(MultiTreeNode typeSpecifier, String identifierName, Integer value ){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createVarDeclaration(MultiTreeNode typeSpecifier, String identifierName){ throw new UnsupportedOperationException();}
 	protected MultiTreeNode createTypeSpecifier(String typeName){ throw new UnsupportedOperationException();}
 	protected MultiTreeNode createTypeSpecifier(MultiTreeNode type,MultiTreeNode expression){ throw new UnsupportedOperationException();}
 	protected MultiTreeNode createBlock(MultiTreeNode declarations, MultiTreeNode instructions){ throw new UnsupportedOperationException();}
@@ -34,6 +34,7 @@ parser code {:
 	protected MultiTreeNode createLExpression(MultiTreeNode lexp, MultiTreeNode exp){ throw new UnsupportedOperationException();}
 	protected MultiTreeNode createExpression(MultiTreeNode lexp, MultiTreeNode operation,MultiTreeNode ex){ throw new UnsupportedOperationException();}
 	protected MultiTreeNode createUExpression(MultiTreeNode operation,MultiTreeNode ex){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createInstance(Integer instance){ throw new UnsupportedOperationException();}
 	protected MultiTreeNode createInstance(String instance){ throw new UnsupportedOperationException();}
 	protected MultiTreeNode createOperation(String operation){ throw new UnsupportedOperationException();}
 	protected MultiTreeNode createVariable(String name){ throw new UnsupportedOperationException();}
@@ -71,7 +72,7 @@ terminal NOT;
 terminal String NAME;
 
 terminal String    STRING;  // our scanner provides numbers as string
-terminal char      QCHAR;
+terminal String    QCHAR;
 terminal Integer   NUMBER;     
 
 /* Non terminals */
@@ -110,7 +111,7 @@ param_list ::= param_list:pl COMMA formal_par:fp        						{:RESULT = pl;RESU
                  ;	
                  
                  		
-formal_par ::= type:t NAME:name                                       			{:RESULT = createVarDeclaration(t,name,0);:}
+formal_par ::= type:t NAME:name                                       			{:RESULT = createVarDeclaration(t,name);:}
 		   ;
 		   
 block ::= LBRACE var_delcaration_list:vadl statements:st RBRACE		   			{:RESULT = createBlock(vadl,st);:}
@@ -122,7 +123,7 @@ var_delcaration_list ::= var_delcaration_list:vadl var_declaration:vad  		{:RESU
 					 |                                         					{:RESULT = createListNode("VarDeclarations",null);:}
 					 ;
 					 
-var_declaration ::= type:t NAME:name SEMICOLON	                       			{:RESULT = createVarDeclaration(t,name,0);:}
+var_declaration ::= type:t NAME:name SEMICOLON	                       			{:RESULT = createVarDeclaration(t,name);:}
 				;
 				
 type ::= INT                                                   					{:RESULT = createTypeSpecifier("INT");:}
@@ -131,18 +132,18 @@ type ::= INT                                                   					{:RESULT = c
 	 ;
 
 statements ::= statements:stms statement:stm SEMICOLON        					{:RESULT = stms;RESULT.addChild(stm);:}
-				| statement:stm SEMICOLON                        				{:RESULT = createListNode("Statemtents",stm);:}
+				| statement:stm SEMICOLON                        				{:RESULT = createListNode("Statements",stm);:}
 				;		   
 		   
-statement  ::=  IF LPAR exp:ex RPAR statement:stm ELSE statement:stm      		{:RESULT = createIfStatement(ex,stm,stm);:}
+statement  ::=  IF LPAR exp:ex RPAR statement:stm ELSE statement:stm1      		{:RESULT = createIfStatement(ex,stm,stm1);:}
            |    IF LPAR	exp:ex RPAR statement:stm                     			{:RESULT = createIfStatement(ex,stm,null);:}
            |    WHILE LPAR exp:ex RPAR statement:stm                  	  		{:RESULT = createStatement("WHILE",ex,stm);:}
            |    lexp:lex ASSIGN exp:ex                                	  		{:RESULT = createStatement("Assign",lex,ex);:}
            |    RETURN exp:ex                                     				{:RESULT = createReturnStatement(ex);:}
            |    NAME:name LPAR exp_list:exl RPAR                            	{:RESULT = createStatementList("StatementList",name,exl);:}
            |    block:blk                                          				{:RESULT = createBlockStatement(blk);:}
-           |    WRITE exp:ex                                      				{:RESULT = createInOutStatement("IN",ex);:}
-           |    READ exp:ex                                       				{:RESULT = createInOutStatement("OUT",ex);:}
+           |    WRITE exp:ex                                      				{:RESULT = createInOutStatement("WRITE",ex);:}
+           |    READ lexp:ex                                       				{:RESULT = createInOutStatement("READ",ex);:}
            ;
            
 lexp ::=  var:v                                                  				{:RESULT = createLExpression(v,null);:}
@@ -150,12 +151,12 @@ lexp ::=  var:v                                                  				{:RESULT = 
      ;
      
 exp  ::=  lexp:lex                                                 				{:RESULT = createExpression(lex,null,null);:}
-     |    exp:ex binop:bop exp:ex                                        		{:RESULT = createExpression(ex,bop,ex);:}
+     |    exp:ex binop:bop exp:ex1                                        		{:RESULT = createExpression(ex,bop,ex1);:}
      |    unop:uop exp:ex                                             			{:RESULT = createUExpression(uop,ex);:}
      |    LPAR exp:ex RPAR                                        				{:RESULT = createExpression(ex, null,null);:}
-     |    NUMBER			                                           			{:RESULT = createInstance("Number");:}
+     |    NUMBER:number			                                           		{:RESULT = createInstance(number);:}
      |    NAME:name LPAR exp_list:exl RPAR                                  	{:RESULT = createStatementList("ExpressionList",name,exl);:}
-     |    QCHAR                                                					{:RESULT = createInstance("CHAR");:}
+     |    QCHAR:qchar                                               			{:RESULT = createInstance(qchar);:}
      |    LENGTH lexp:lex                                          				{:RESULT = createUExpression(null,lex);:}
      ;
      

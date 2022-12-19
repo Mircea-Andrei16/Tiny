@@ -33,11 +33,10 @@ public class ParserWithTree extends Parser{
   	/**
   	 * Used for var declaration. line95
   	 */
-	protected MultiTreeNode createVarDeclaration(MultiTreeNode typeSpecifier, String identifierName, Integer value )
+	protected MultiTreeNode createVarDeclaration(MultiTreeNode typeSpecifier, String identifierName)
 	{
 		MultiTreeNode newNode = new MultiTreeNode("Var Declaration", identifierName);
 		newNode.addChild(typeSpecifier);		
-		newNode.addChild(new MultiTreeNode("IntValue", "" + value));
 		return newNode;
 	}
 	
@@ -105,7 +104,7 @@ public class ParserWithTree extends Parser{
 	protected MultiTreeNode createStatement(String name, MultiTreeNode ex, MultiTreeNode stm) {
 		MultiTreeNode expr = new MultiTreeNode(name);
 		if(ex != null) {
-			expr.addChild(ex);
+			expr.addChild(ex); 
 		}
 		if(stm != null) {
 			expr.addChild(stm);
@@ -159,15 +158,20 @@ public class ParserWithTree extends Parser{
 	protected MultiTreeNode createInOutStatement(String ioOP, MultiTreeNode exp) {
 		MultiTreeNode inOutStatement = new MultiTreeNode(ioOP);
 		if (exp != null) {
-			inOutStatement.addChild(exp);
+			if(exp.getDescendentsCount() > 0) {
+				for (MultiTreeNode child : exp.getChildren()) {
+					if(child.getDescendentsCount() == 0) {
+						inOutStatement.addChild(child);
+					}
+				}
+			}else {
+				inOutStatement.addChild(exp);
+			}
 		}
 		return inOutStatement;
 	}
 	protected MultiTreeNode createLExpression(MultiTreeNode lexp, MultiTreeNode exp) {
-		MultiTreeNode leftExpression = new MultiTreeNode("Left expression");
-		if (lexp != null) {
-			leftExpression.addChild(lexp);
-		}
+		MultiTreeNode leftExpression = lexp;
 		if (exp != null) {
 			leftExpression.addChild(exp);
 		}
@@ -175,14 +179,34 @@ public class ParserWithTree extends Parser{
 	}
 	protected MultiTreeNode createExpression(MultiTreeNode lexp, MultiTreeNode operation,MultiTreeNode ex) {
 		MultiTreeNode expression = new MultiTreeNode("Expression");
-		if (lexp != null) {
-			expression.addChild(lexp);
-		}
-		if (operation != null) {
+		
+		if(lexp != null && ex != null) {
+			for (MultiTreeNode  lChild : lexp.getChildren()) {
+				if(lChild.getDescendentsCount() == 0) {
+					expression.addChild(lChild);
+				}
+			}
 			expression.addChild(operation);
-		}
-		if (ex != null) {
-			expression.addChild(ex);
+			if(ex.getDescendentsCount() > 0) {
+			for (MultiTreeNode  rChild : ex.getChildren()) {
+				if(rChild.getDescendentsCount() == 0) {
+					expression.addChild(rChild);
+				}
+			}
+			}else {
+				expression.addChild(ex);
+			}
+		}else {
+		
+			if (lexp != null) {
+				expression.addChild(lexp);
+			}
+			if (operation != null) {
+				expression.addChild(operation);
+			}
+			if (ex != null) {
+				expression.addChild(ex);
+			}
 		}
 		return expression;
 	}
@@ -195,6 +219,10 @@ public class ParserWithTree extends Parser{
 			uExpression.addChild(ex);
 		}
 		return uExpression;
+	}
+	protected MultiTreeNode createInstance(Integer instance) {
+		MultiTreeNode instanceNode = new MultiTreeNode(instance.toString());
+		return instanceNode;
 	}
 	protected MultiTreeNode createInstance(String instance) {
 		MultiTreeNode instanceNode = new MultiTreeNode(instance);
