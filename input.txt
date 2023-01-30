@@ -1,5 +1,8 @@
+int global1;
+int global2;
 int main(int a, int b){
 
+	
 	int val;
 	int val2;
 	
@@ -18,3 +21,4 @@ int main(int a, int b){
     write 'b';	
     return 0;
 }
+

@@ -57,5 +57,16 @@ public class MultiTree {
 	public int getNodesCount() {
 		return nodesCount;
 	}
+
+	public void extractSymbols(SymbolTable symbolTable) {
+		
+		if (root == null)
+		{
+			System.out.println("The tree was not created yet.");
+			return;
+		}
+		
+		root.extractSymbols(symbolTable, root.getData());
+	}
 	
 }

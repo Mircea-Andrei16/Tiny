@@ -18,6 +18,14 @@ public class MultiTreeNode {
 		
 	}
 	
+	public String getExtraData() {
+		return extraData;
+	}
+
+	public void setExtraData(String extraData) {
+		this.extraData = extraData;
+	}
+
 	public int getDescendentsCount()
 	{		
 		return descendentsCount;
@@ -70,5 +78,32 @@ public class MultiTreeNode {
 			multiTreeNode.printNode(level + 1);
 		}
 	}
-
+	
+	public void extractSymbols(SymbolTable symbolTable, String context) {
+	
+		if(data.equals("Var Declaration")) {
+			createTableEntry(symbolTable,context,1);
+		}
+		
+		if(data.equals("FunctionDeclaration")) {
+			createTableEntry(symbolTable,context,0);
+			context = extraData;
+		}
+		
+		for (MultiTreeNode multiTreeNode : children) {
+			multiTreeNode.extractSymbols(symbolTable, context);
+		}
+	}
+	
+	private void createTableEntry(SymbolTable symbolTable, String context, int symbolType) {
+		MultiTreeNode typeSpecifier = children.get(0);
+		
+		SymbolTableEntry newEntry = new SymbolTableEntry();
+		if(context.equals("Program")) {
+			newEntry.createTableEntry(extraData, typeSpecifier.getExtraData(), 1, symbolType, context);
+		}else {
+			newEntry.createTableEntry(extraData, typeSpecifier.getExtraData(), 0, symbolType, context);
+		}
+		symbolTable.addSymbolEntry(extraData, newEntry);
+	}
 }

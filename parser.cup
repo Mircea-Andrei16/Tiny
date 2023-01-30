@@ -120,7 +120,7 @@ block ::= LBRACE var_delcaration_list:vadl statements:st RBRACE		   			{:RESULT 
 	 
 var_delcaration_list ::= var_delcaration_list:vadl var_declaration:vad  		{:RESULT = vadl;RESULT.addChild(vad);:}
 					 | var_declaration:vad                         				{:RESULT = createListNode("VarDeclarations",vad);:}
-					 |                                         					{:RESULT = createListNode("VarDeclarations",null);:}
+					 | /*empty declaration list*/                               {:RESULT = createListNode("VarDeclarations",null);:}
 					 ;
 					 
 var_declaration ::= type:t NAME:name SEMICOLON	                       			{:RESULT = createVarDeclaration(t,name);:}

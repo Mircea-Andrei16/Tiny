@@ -9,7 +9,10 @@ class Driver {
 		parser.parse();
 		
 		MultiTree tree = parser.getSyntaxTree();
-		tree.printTree();
+		SymbolTable table = new SymbolTable();
+		table.extract(tree);
+		table.printSymbolTable();
+//		tree.printTree();
 	}
 	
 }

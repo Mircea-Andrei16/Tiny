@@ -26,7 +26,9 @@ public class ParserWithTree extends Parser{
 	protected MultiTreeNode createListNode(String listName, MultiTreeNode firstChild)
 	{
 		MultiTreeNode newNode = new MultiTreeNode(listName);
-		newNode.addChild(firstChild);
+		if(firstChild != null) {
+			newNode.addChild(firstChild);
+		}
 		return newNode;
 	}
   	
