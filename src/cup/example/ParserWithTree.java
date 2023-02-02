@@ -179,16 +179,20 @@ public class ParserWithTree extends Parser{
 		}
 		return leftExpression;
 	}
+	
 	protected MultiTreeNode createExpression(MultiTreeNode lexp, MultiTreeNode operation,MultiTreeNode ex) {
 		MultiTreeNode expression = new MultiTreeNode("Expression");
-		
 		if(lexp != null && ex != null) {
-			for (MultiTreeNode  lChild : lexp.getChildren()) {
-				if(lChild.getDescendentsCount() == 0) {
-					expression.addChild(lChild);
+			expression.addChild(operation);
+			if(!"Expression".equals(lexp.getData())){
+				expression.addChild(lexp);
+			}else {
+				for (MultiTreeNode  lChild : lexp.getChildren()) {
+					if(lChild.getDescendentsCount() == 0) {
+						expression.addChild(lChild);
+					}
 				}
 			}
-			expression.addChild(operation);
 			if(ex.getDescendentsCount() > 0) {
 			for (MultiTreeNode  rChild : ex.getChildren()) {
 				if(rChild.getDescendentsCount() == 0) {
@@ -212,6 +216,9 @@ public class ParserWithTree extends Parser{
 		}
 		return expression;
 	}
+	/**
+	 * create unar expression node
+	 */
 	protected MultiTreeNode createUExpression(MultiTreeNode operation,MultiTreeNode ex) {
 		MultiTreeNode uExpression = new MultiTreeNode("Unar Expression");
 		if (operation != null) {
@@ -222,20 +229,35 @@ public class ParserWithTree extends Parser{
 		}
 		return uExpression;
 	}
+	/**
+	 * create an instance node from integer 
+	 */
 	protected MultiTreeNode createInstance(Integer instance) {
-		MultiTreeNode instanceNode = new MultiTreeNode(instance.toString());
-		return instanceNode;
+		return new MultiTreeNode(instance.toString());
 	}
+	/**
+	 * create an instance node from string
+	 */
 	protected MultiTreeNode createInstance(String instance) {
-		MultiTreeNode instanceNode = new MultiTreeNode(instance);
-		return instanceNode;
+		return new MultiTreeNode(instance);
 	}
+	/**
+	 * create an operation node
+	 */
 	protected MultiTreeNode createOperation(String operation) {
-		MultiTreeNode operationNode = new MultiTreeNode(operation);
-		return operationNode;
+		return new MultiTreeNode(operation);
 	}
+	/**
+	 * create a variable node from name
+	 */
 	protected MultiTreeNode createVariable(String name) {
-		MultiTreeNode variable = new MultiTreeNode(name);
-		return variable;
+		return new MultiTreeNode(name);
+	}
+	/**
+ 	 * Creates error message node
+ 	 */
+	protected MultiTreeNode createErrorNode(String errorMessage)
+	{
+		return new MultiTreeNode(errorMessage);
 	}
 }

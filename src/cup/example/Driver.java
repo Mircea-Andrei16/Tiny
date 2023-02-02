@@ -6,13 +6,16 @@ class Driver {
 
 	public static void main(String[] args) throws Exception {
 		ParserWithTree parser = new ParserWithTree();
-		parser.parse();
-		
+//		parser.parse();
+		parser.
+		debug_parse();
 		MultiTree tree = parser.getSyntaxTree();
 		SymbolTable table = new SymbolTable();
 		table.extract(tree);
-		table.printSymbolTable();
+//		table.printSymbolTable();
 //		tree.printTree();
+		
+		tree.typeChecking(table.getSymbolTable());
 	}
 	
 }

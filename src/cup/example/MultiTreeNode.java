@@ -1,6 +1,7 @@
 package cup.example;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class MultiTreeNode {
 	
@@ -55,12 +56,20 @@ public class MultiTreeNode {
 		return addedNode;
 	}
 	
+	/**
+	 * add child in tree
+	 * @param node
+	 */
 	public void addChild(MultiTreeNode node)
 	{
 		children.add(node);
 		descendentsCount += node.descendentsCount + 1;
 	}
 	
+	/**
+	 * print node 
+	 * @param level
+	 */
 	public void printNode(int level)
 	{
 		for (int i = 0; i < level; i++)
@@ -79,6 +88,11 @@ public class MultiTreeNode {
 		}
 	}
 	
+	/**
+	 * Extract simbols for functions and variables
+	 * @param symbolTable
+	 * @param context
+	 */
 	public void extractSymbols(SymbolTable symbolTable, String context) {
 	
 		if(data.equals("Var Declaration")) {
@@ -95,6 +109,46 @@ public class MultiTreeNode {
 		}
 	}
 	
+	public void typeChecking(Map<String, SymbolTableEntry> symbolTable) {
+		checkAssignments(symbolTable);
+		checkIfStatements(symbolTable);
+		checkWhileStatements(symbolTable);
+		for (MultiTreeNode multiTreeNode : children) {
+			multiTreeNode.typeChecking(symbolTable);
+		}
+		
+	}
+
+	private void checkWhileStatements(Map<String, SymbolTableEntry> symbolTable) {
+		if("If Statement".equals(data)) {
+			TypeCheckUtil.checkStatements(children,"if");
+		}
+		
+	}
+
+	private void checkIfStatements(Map<String, SymbolTableEntry> symbolTable) {
+		if("WHILE".equals(data)) {
+			TypeCheckUtil.checkStatements(children,"while");
+		}
+		
+	}
+
+	/**
+	 * check type for assignments
+	 * @param symbolTable
+	 */
+	private void checkAssignments(Map<String, SymbolTableEntry> symbolTable) {
+		if("Assign".equals(data)) {
+			TypeCheckUtil.check(symbolTable,children);
+		}
+	}
+
+	/**
+	 * Creates the map for variables
+	 * @param symbolTable
+	 * @param context
+	 * @param symbolType
+	 */
 	private void createTableEntry(SymbolTable symbolTable, String context, int symbolType) {
 		MultiTreeNode typeSpecifier = children.get(0);
 		

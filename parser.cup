@@ -38,6 +38,7 @@ parser code {:
 	protected MultiTreeNode createInstance(String instance){ throw new UnsupportedOperationException();}
 	protected MultiTreeNode createOperation(String operation){ throw new UnsupportedOperationException();}
 	protected MultiTreeNode createVariable(String name){ throw new UnsupportedOperationException();}
+	protected MultiTreeNode createErrorNode(String errorMessage){ throw new UnsupportedOperationException();}
 :}
 
 /* define how to connect to the scanner! */
@@ -119,8 +120,8 @@ block ::= LBRACE var_delcaration_list:vadl statements:st RBRACE		   			{:RESULT 
 	 
 	 
 var_delcaration_list ::= var_delcaration_list:vadl var_declaration:vad  		{:RESULT = vadl;RESULT.addChild(vad);:}
-					 | var_declaration:vad                         				{:RESULT = createListNode("VarDeclarations",vad);:}
 					 | /*empty declaration list*/                               {:RESULT = createListNode("VarDeclarations",null);:}
+					 |    error SEMICOLON										{:RESULT = createErrorNode("error: Var Dec");:}
 					 ;
 					 
 var_declaration ::= type:t NAME:name SEMICOLON	                       			{:RESULT = createVarDeclaration(t,name);:}
@@ -131,23 +132,24 @@ type ::= INT                                                   					{:RESULT = c
 	 |   type:t LBRACK exp:ex RBRACK                           					{:RESULT = createTypeSpecifier(t,ex);:}
 	 ;
 
-statements ::= statements:stms statement:stm SEMICOLON        					{:RESULT = stms;RESULT.addChild(stm);:}
-				| statement:stm SEMICOLON                        				{:RESULT = createListNode("Statements",stm);:}
+statements ::= statements:stms  statement:stm         					        {:RESULT = stms;RESULT.addChild(stm);:}
+				|                         				                		{:RESULT = createListNode("StatementsList",null);:}
 				;		   
 		   
 statement  ::=  IF LPAR exp:ex RPAR statement:stm ELSE statement:stm1      		{:RESULT = createIfStatement(ex,stm,stm1);:}
            |    IF LPAR	exp:ex RPAR statement:stm                     			{:RESULT = createIfStatement(ex,stm,null);:}
            |    WHILE LPAR exp:ex RPAR statement:stm                  	  		{:RESULT = createStatement("WHILE",ex,stm);:}
-           |    lexp:lex ASSIGN exp:ex                                	  		{:RESULT = createStatement("Assign",lex,ex);:}
-           |    RETURN exp:ex                                     				{:RESULT = createReturnStatement(ex);:}
-           |    NAME:name LPAR exp_list:exl RPAR                            	{:RESULT = createStatementList("StatementList",name,exl);:}
+           |    lexp:lex ASSIGN exp:ex SEMICOLON                             	{:RESULT = createStatement("Assign",lex,ex);:}
+           |    RETURN exp:ex SEMICOLON                          		        {:RESULT = createReturnStatement(ex);:}
+           |    NAME:name LPAR exp_list:exl RPAR SEMICOLON                      {:RESULT = createStatementList("StatementList",name,exl);:}
            |    block:blk                                          				{:RESULT = createBlockStatement(blk);:}
-           |    WRITE exp:ex                                      				{:RESULT = createInOutStatement("WRITE",ex);:}
-           |    READ lexp:ex                                       				{:RESULT = createInOutStatement("READ",ex);:}
+           |    WRITE exp:ex SEMICOLON        				                    {:RESULT = createInOutStatement("WRITE",ex);:}
+           |    READ lexp:ex SEMICOLON											{:RESULT = createInOutStatement("READ",ex);:}
            ;
            
 lexp ::=  var:v                                                  				{:RESULT = createLExpression(v,null);:}
      |    lexp:lex LBRACK exp:ex RBRACK                               			{:RESULT = createLExpression(lex,ex);:}
+     |    LESS error 															{:RESULT = createErrorNode("error: Left Exp");:}
      ;
      
 exp  ::=  lexp:lex                                                 				{:RESULT = createExpression(lex,null,null);:}
@@ -158,6 +160,8 @@ exp  ::=  lexp:lex                                                 				{:RESULT 
      |    NAME:name LPAR exp_list:exl RPAR                                  	{:RESULT = createStatementList("ExpressionList",name,exl);:}
      |    QCHAR:qchar                                               			{:RESULT = createInstance(qchar);:}
      |    LENGTH lexp:lex                                          				{:RESULT = createUExpression(null,lex);:}
+     |    error RBRACE															{:RESULT = createErrorNode("error: exp '}'");:}
+     |    error COMMA															{:RESULT = createErrorNode("error: exp ','");:}
      ;
      
 binop ::= MINUS                                                					{:RESULT = createOperation("MINUS");:}

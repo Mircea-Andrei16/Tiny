@@ -46,10 +46,8 @@ public class SymbolTable {
 	public void extract(MultiTree tree) {
 		tree.extractSymbols(this);
 	}
-	
-	
-	
-	
-	
 
+	public Map<String, SymbolTableEntry> getSymbolTable() {
+		return symbolTable;
+	}
 }

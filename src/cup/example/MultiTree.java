@@ -1,5 +1,7 @@
 package cup.example;
 
+import java.util.Map;
+
 public class MultiTree {
 	
 	private MultiTreeNode root = null;
@@ -56,6 +58,10 @@ public class MultiTree {
 
 	public int getNodesCount() {
 		return nodesCount;
+	}
+	
+	public void typeChecking(Map<String, SymbolTableEntry> symbolTable) {
+		root.typeChecking(symbolTable);
 	}
 
 	public void extractSymbols(SymbolTable symbolTable) {

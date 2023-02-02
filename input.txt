@@ -2,22 +2,27 @@ int global1;
 int global2;
 int main(int a, int b){
 
-	
+	int val7 int;
 	int val;
 	int val2;
-	
-    val = 1;
-    
-    read val2;
+	char d;
 
-    val = val * val2;
+    val = 1 + d + val3 - 6;
+    val2 = 1 / 0;
     
     while(val == val2)
-    	val2 = val2+1;
+    {
+    	d = 'c' };
+    }
     
-    if(val != val2)
+    
+    if(val + val2)
+    {
+    	val1 = 1,;
+    	< val2 = 1;
     	write 'a';
-    	
+    }
+    
     write 'b';	
     return 0;
 }
